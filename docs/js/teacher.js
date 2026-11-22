@@ -306,9 +306,29 @@ async function listHomework() {
   const list = snap.docs.map((d) => ({ id: d.id, ...d.data() })).sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
   $('hw-list').innerHTML = list.length
     ? list.map((a) => `<div class="row" style="margin-bottom:.5rem"><button class="btn secondary" data-hw="${a.id}">查看成績</button>
-        <span>${esc(a.title)}　${a.total} 題　<span class="state-chip">${a.status === 'open' ? '開放中' : '已關閉'}</span></span></div>`).join('')
+        <span>${esc(a.title)}　${a.total} 題　<span class="state-chip">${a.status === 'open' ? '開放中' : '已關閉'}</span></span>
+        ${a.status === 'open' ? '' : `<button class="btn secondary" data-del="${a.id}" data-title="${esc(a.title)}" style="color:#c0453b">刪除</button>`}</div>`).join('')
     : '尚未建立課後練習。';
   $('hw-list').querySelectorAll('[data-hw]').forEach((b) => b.addEventListener('click', () => openHomework(b.dataset.hw)));
+  $('hw-list').querySelectorAll('[data-del]').forEach((b) => b.addEventListener('click', () => deleteHomework(b.dataset.del, b.dataset.title, b)));
+}
+
+// 刪除已關閉的課後練習（含所有交卷紀錄與答案），無法復原
+async function deleteHomework(id, title, btn) {
+  if (!confirm(`確定永久刪除「${title}」？\n\n所有學生的交卷紀錄與成績都會一併刪除，且無法復原。\n需要保留成績請先「查看成績」→「匯出成績 Excel」。`)) return;
+  const { F, db } = fb;
+  btn.disabled = true; btn.textContent = '刪除中…';
+  try {
+    const subs = await F.getDocs(F.collection(db, 'assignments', id, 'submissions'));
+    for (const d of subs.docs) await F.deleteDoc(d.ref);
+    const rev = await F.getDocs(F.collection(db, 'assignments', id, 'reveal'));
+    for (const d of rev.docs) await F.deleteDoc(d.ref);
+    await F.deleteDoc(F.doc(db, 'assignments', id));
+    await listHomework();
+  } catch (err) {
+    console.error(err); alert(`刪除失敗：${err.code || err.message}`);
+    btn.disabled = false; btn.textContent = '刪除';
+  }
 }
 
 async function openHomework(id) {
