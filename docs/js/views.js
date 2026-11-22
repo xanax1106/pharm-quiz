@@ -23,7 +23,11 @@ function wallHtml(tiles, mode, answer) {
   const legend = mode === 'reveal'
     ? '<span><i class="lg ok"></i>答對</span><span><i class="lg bad"></i>答錯</span><span><i class="lg"></i>未答</span>'
     : '<span><i class="lg done"></i>已作答</span><span><i class="lg"></i>尚未作答</span>';
-  return `<div class="wall${tiles.length > 40 ? ' dense' : ''}">${cells}</div><div class="wall-legend">${legend}</div>`;
+  // 依人數自動調整方格大小：10 人以下大方格一排；11–40 人每排 10 格；41 人以上每排 14 格
+  const n = tiles.length;
+  const cls = n <= 10 ? ' big' : n > 40 ? ' dense' : '';
+  const style = n <= 10 ? ` style="grid-template-columns:repeat(${Math.max(n, 4)},minmax(0,1fr))"` : '';
+  return `<div class="wall${cls}"${style}>${cells}</div><div class="wall-legend">${legend}</div>`;
 }
 
 function barsHtml(counts, answer, total) {

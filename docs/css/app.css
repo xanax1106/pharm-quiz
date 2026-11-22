@@ -240,3 +240,8 @@ table.grid td.pending { color: var(--muted); }
 .hint-box { display: block; margin: .4rem 0 .5rem; padding: .5em .8em; border-left: 4px solid var(--amber); background: #fdf3e2; border-radius: 0 6px 6px 0; color: var(--ink, #22303a); }
 .screen .qscreen .explain, .screen .qscreen .keypoint { font-size: .95em; margin-top: .6em; padding: .55em .9em; }
 .screen .wall { gap: .25em; }
+
+/* 作答牆：人數少時放大方格 */
+.wall.big { gap: .5em; }
+.wall.big .tile { font-size: 1.35em; padding: .45em 0; border-radius: 10px; }
+.wall.big .tile span { font-size: .7em; }

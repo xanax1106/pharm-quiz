@@ -37,15 +37,15 @@
           <label><input type="radio" name="mode" value="step" checked><span>逐題公布：每題作答後立即統計與解析</span></label>
           <label><input type="radio" name="mode" value="batch"><span>連續作答：全部做完再逐題檢討</span></label>
         </div></div>
-      <div class="field"><label class="row" style="font-weight:700"><input type="checkbox" id="testmode"> 測試模式：學生輸入暱稱即可加入，不需學號</label></div>
+      <div class="field"><label class="row" style="font-weight:700"><input type="checkbox" id="testmode"> 測試模式：學生輸入暱稱即可加入，不需座號</label></div>
       <div class="field"><label for="wall">投影幕「全班作答牆」</label>
-        <select id="wall"><option value="last3" selected>顯示座號（學號末 3 碼）與對錯</option><option value="color">只顯示顏色（不顯示學號）</option><option value="off">不顯示作答牆</option></select></div>
+        <select id="wall"><option value="last3" selected>顯示座號與對錯</option><option value="color">只顯示顏色（不顯示座號）</option><option value="off">不顯示作答牆</option></select></div>
       <div id="preview"></div>
       <p class="error-msg" id="setup-err" role="alert"></p>
       <button class="btn go" id="btn-create" disabled>建立課堂並產生代碼</button>
     </div>
     <div class="card">
-      <h2>建立課後練習（每週約 40 題，學生自行在家作答）</h2>
+      <h2>建立課後練習（每週約 30 題，學生自行在家作答）</h2>
       <div class="field"><label for="hw-title">練習名稱</label><input id="hw-title" placeholder="例：第 1 週 課後練習"></div>
       <div class="field"><label for="hw-file">上傳題庫 Excel（同「題庫範本.xlsx」格式，「類別」欄填本週或複習）</label><input id="hw-file" type="file" accept=".xlsx,.xls,.csv"></div>
       <div class="field"><label class="row" style="font-weight:700"><input type="checkbox" id="hw-testmode"> 測試模式：輸入暱稱即可作答</label></div>
@@ -62,7 +62,7 @@
       <div class="row" style="align-items:flex-start;gap:1.25rem">
         <div id="qr-preview" class="qr-mini" aria-label="學生加入網址的 QR code"></div>
         <div>
-          <p class="note" style="margin-top:0">學生掃描後，輸入學號與投影幕上的 6 位數課堂代碼即可加入。下載圖檔後貼到每週的上課簡報。</p>
+          <p class="note" style="margin-top:0">學生掃描後，輸入座號與投影幕上的 6 位數課堂代碼即可加入。下載圖檔後貼到每週的上課簡報。</p>
           <p class="num" id="join-url" style="word-break:break-all"></p>
           <button class="btn secondary" id="btn-qr">下載 QR code 圖檔（PNG）</button>
         </div>
@@ -134,7 +134,7 @@
           <button class="btn secondary" id="btn-copy">複製加入連結</button>
         </div>
       </div>
-      <p class="note">綠色按鈕會依進度自動顯示下一步。投影畫面上也可以用簡報器或鍵盤（→、PageDown、空白鍵）執行下一步。投影畫面只顯示人數分布，不顯示學號。</p>
+      <p class="note">綠色按鈕會依進度自動顯示下一步。投影畫面上也可以用簡報器或鍵盤（→、PageDown、空白鍵）執行下一步。投影畫面的全班作答牆依建立課堂時的設定，顯示座號或只顯示顏色。</p>
     </div>
 
     <div class="card" id="cur-card">
