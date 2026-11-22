@@ -1,0 +1,104 @@
+rules_version = '2';
+// 課堂即時測驗：資料庫存取規則
+// 教師：在 teachers/{uid} 建立文件者（於 Firebase 主控台手動新增）
+// 學生：匿名登入，只能寫入自己的加入紀錄與答案；逐題模式只能答目前題目，連續作答模式可答本輪任一題
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() { return request.auth != null; }
+    function isTeacher() { return signedIn() && exists(/databases/$(database)/documents/teachers/$(request.auth.uid)); }
+    function sessionData(sid) { return get(/databases/$(database)/documents/sessions/$(sid)).data; }
+
+    match /teachers/{uid} {
+      allow read: if signedIn() && request.auth.uid == uid;
+      allow write: if false;
+    }
+
+    match /codes/{code} {
+      allow read: if signedIn();
+      allow create, update, delete: if isTeacher();
+    }
+
+    match /sessions/{sid} {
+      // 公開欄位不含答案；答案在公布時才寫入 reveal
+      allow read: if signedIn();
+      allow create: if isTeacher() && request.resource.data.teacherUid == request.auth.uid;
+      allow update, delete: if isTeacher() && resource.data.teacherUid == request.auth.uid;
+
+      // 題目與正確答案：僅教師可讀寫
+      match /private/{doc} {
+        allow read, write: if isTeacher() && sessionData(sid).teacherUid == request.auth.uid;
+      }
+
+      match /participants/{uid} {
+        allow read: if signedIn() && (request.auth.uid == uid || isTeacher());
+        allow create, update: if signedIn() && request.auth.uid == uid
+          && sessionData(sid).status != 'ended'
+          && request.resource.data.keys().hasOnly(['studentId', 'joinedAt'])
+          && request.resource.data.studentId is string
+          && (
+            // 測試模式：暱稱 1–20 字
+            (sessionData(sid).get('testMode', false) == true
+              && request.resource.data.studentId.size() >= 1 && request.resource.data.studentId.size() <= 20)
+            // 正式模式：座號（補成 3 碼）或學號 3–20 個英數字
+            || request.resource.data.studentId.matches('^[A-Z0-9]{3,20}$')
+          );
+        allow delete: if isTeacher();
+      }
+
+      match /answers/{aid} {
+        allow read: if signedIn() && (isTeacher() || aid.matches('^[0-9]+_' + request.auth.uid + '$'));
+        allow create, update: if signedIn()
+          && request.resource.data.uid == request.auth.uid
+          && aid == string(request.resource.data.qIndex) + '_' + request.auth.uid
+          && request.resource.data.keys().hasOnly(['uid', 'studentId', 'qIndex', 'choice', 'answeredAt'])
+          && request.resource.data.choice in ['A', 'B', 'C', 'D']
+          && exists(/databases/$(database)/documents/sessions/$(sid)/participants/$(request.auth.uid))
+          && request.resource.data.qIndex is int
+          && (
+            // 逐題公布：只能回答目前這一題
+            (sessionData(sid).status == 'question' && sessionData(sid).current.index == request.resource.data.qIndex)
+            // 連續作答：可回答任一題（0 ～ 題數-1）
+            || (sessionData(sid).status == 'batch' && request.resource.data.qIndex >= 0 && request.resource.data.qIndex < sessionData(sid).total)
+          );
+        allow delete: if isTeacher();
+      }
+    }
+
+    // ===== 課後練習 =====
+    function hwData(aid) { return get(/databases/$(database)/documents/assignments/$(aid)).data; }
+
+    match /assignments/{aid} {
+      // 題目（不含答案）
+      allow read: if signedIn();
+      allow create: if isTeacher() && request.resource.data.teacherUid == request.auth.uid;
+      allow update, delete: if isTeacher() && resource.data.teacherUid == request.auth.uid;
+
+      // 答案與解析：教師可讀寫；學生交卷後才能讀
+      match /reveal/{doc} {
+        allow read: if signedIn() && (isTeacher()
+          || exists(/databases/$(database)/documents/assignments/$(aid)/submissions/$(request.auth.uid)));
+        allow write: if isTeacher() && hwData(aid).teacherUid == request.auth.uid;
+      }
+
+      // 交卷：每個帳號只能交一次，交卷後不可修改
+      match /submissions/{uid} {
+        allow read: if signedIn() && (request.auth.uid == uid || isTeacher());
+        allow create: if signedIn() && request.auth.uid == uid
+          && hwData(aid).status == 'open'
+          && request.resource.data.keys().hasOnly(['uid', 'studentId', 'answers', 'submittedAt'])
+          && request.resource.data.uid == uid
+          && request.resource.data.answers is map
+          && request.resource.data.answers.size() <= hwData(aid).total
+          && request.resource.data.studentId is string
+          && (
+            (hwData(aid).get('testMode', false) == true
+              && request.resource.data.studentId.size() >= 1 && request.resource.data.studentId.size() <= 20)
+            || request.resource.data.studentId.matches('^[A-Z0-9]{3,20}$')
+          );
+        allow update: if false;
+        allow delete: if isTeacher();
+      }
+    }
+  }
+}

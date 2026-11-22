@@ -1,0 +1,21 @@
+<!doctype html><html lang="zh-Hant-TW"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>課後練習預覽（假資料）</title><base href="../docs/"><link rel="stylesheet" href="../docs/css/app.css"></head>
+<body><main id="app" class="student"></main>
+<script type="module">
+import { renderHomework, buildLayout, grade } from '../docs/js/hwviews.js';
+const qs = [
+  { text: '顯影劑是否屬於藥物？', options: ['屬於，因用於診斷疾病', '不屬於，因本身不具治療作用', '不屬於，因屬於醫療器材', '僅在注射時才屬於藥物'], category: '本週', img: 'contrast' },
+  { text: '研究「身體如何處理藥物」的學科是？', options: ['藥效學', '藥動學', '毒物學', '藥劑學'], category: '本週', img: 'pk' },
+  { text: 'digoxin 屬於植物有效成分中的哪一類？', options: ['生物鹼', '配醣體', '鞣質', '揮發油'], category: '複習' },
+];
+const key = { items: [{ answer: 'A', explanation: '用於診斷即屬藥物。', keyPoint: '看使用目的' }, { answer: 'B', explanation: 'PK 是身體對藥。', keyPoint: 'PD 藥對身體；PK 身體對藥', why: { A: '藥效學研究藥物對身體做了什麼。', B: '正確。', C: '毒物學研究中毒與解毒。', D: '藥劑學研究劑型與製造。' } }, { answer: 'B', explanation: 'digoxin 來自毛地黃，屬配醣體。', keyPoint: 'digoxin 是配醣體' }], keyPoints: ['藥物看使用目的', 'PD vs PK'] };
+const layout = buildLayout(qs, 'demo-uid-123');
+const p = new URLSearchParams(location.search).get('s');
+const base = { title: '第 1 週 課後練習', studentId: 'N1120345', total: 3, questions: qs, layout };
+const S = {
+  login: { ...base, view: 'login', studentId: '' },
+  answer: { ...base, view: 'answer', answers: { 0: 'A' } },
+  result: { ...base, view: 'result', result: grade(qs, { 0: 'A', 1: 'A' }, key), keyPoints: key.keyPoints },
+};
+document.getElementById('app').innerHTML = renderHomework(S[p]);
+</script></body></html>

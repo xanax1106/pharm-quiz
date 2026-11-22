@@ -1,0 +1,58 @@
+<!doctype html><html lang="zh-Hant-TW"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>畫面預覽（假資料）</title>
+<base href="../docs/">
+<link rel="stylesheet" href="../docs/css/app.css"><script src="../docs/js/vendor/qrcode-generator-1.4.4.js"></script></head>
+<body><main id="app"></main>
+<script type="module">
+// 用法：在專案根目錄執行 python -m http.server，開啟 /tools/demo.html?mode=screen&s=lobby
+import { renderScreen, renderStudent } from '../docs/js/views.js';
+const p = new URLSearchParams(location.search);
+const qs = [
+  { index: 0, text: '顯影劑是否屬於藥物？', options: ['屬於，因用於診斷疾病', '不屬於，因本身不具治療作用', '不屬於，因屬於醫療器材', '僅在注射時才屬於藥物'] },
+  { index: 1, text: '研究「身體如何處理藥物」的學科是？', options: ['藥效學', '藥動學', '毒物學', '藥劑學'] },
+  { index: 2, text: '鞣質（tannins）可作為下列何種物質中毒的解毒劑？', options: ['生物鹼', '強酸', '一氧化碳', '有機磷'] },
+  { index: 3, text: 'digoxin 屬於植物有效成分中的哪一類？', options: ['生物鹼', '配醣體', '鞣質', '揮發油'] },
+  { index: 4, text: '藥局將已超過有效期間的藥品繼續販售，依藥事法屬於？', options: ['偽藥', '劣藥', '禁藥', '成藥'] },
+];
+const q = { ...qs[2], total: 5, chapter: 'Ch1 §1', img: 'tea' };
+const counts = { A: 21, B: 6, C: 4, D: 3 };
+const reveal = { answer: 'A', explanation: '鞣質為多元酚，可與生物鹼、重金屬及蛋白質結合產生沉澱，因此可作為生物鹼中毒的解毒劑。', keyPoint: '鞣質會沉澱生物鹼 → 生物鹼中毒解毒劑',
+  why: { A: '正確：鞣質會讓生物鹼沉澱。', B: '強酸中毒不能用鞣質處理。', C: '一氧化碳中毒以氧氣治療。', D: '有機磷中毒使用 atropine 與 pralidoxime。' } };
+const ch = ['A','A','B','A','C','A','A','D','A','B','A','A','A','C','A','A','B','A','A','D','A','A','B','A','A','A','A','C','A','A','B','A','A','D'];
+const tiles = Array.from({ length: 37 }, (_, k) => ({ label: String(301 + k), choice: ch[k] || null }));
+const summary = [
+  { index: 0, text: qs[0].text, answer: 'A', counts: { A: 30, B: 3, C: 2, D: 0 }, n: 35, rate: 86 },
+  { index: 1, text: qs[1].text, answer: 'B', counts: { A: 12, B: 20, C: 2, D: 1 }, n: 35, rate: 57 },
+  { index: 2, text: qs[2].text, answer: 'A', counts, n: 34, rate: 62 },
+  { index: 3, text: qs[3].text, answer: 'B', counts: { A: 14, B: 18, C: 1, D: 2 }, n: 35, rate: 51 },
+  { index: 4, text: qs[4].text, answer: 'B', counts: { A: 9, B: 24, C: 2, D: 0 }, n: 35, rate: 69 },
+];
+const keyPoints = ['藥物的判斷看「使用目的」：預防、診斷、治療、緩解', 'PD 是藥對身體；PK 是身體對藥（ADME）', 'digoxin 是配醣體；鞣質可解生物鹼中毒', '過期是劣藥，塗改有效期限是偽藥'];
+const base = { title: '第1週 第1節 藥物學基本介紹', code: '482913', joined: 37, wallMode: 'last3', tiles };
+const S = {
+  lobby: { ...base, status: 'lobby', joinUrl: 'https://teacher.github.io/pharm-quiz/student.html?code=482913' },
+  question: { ...base, status: 'question', answered: 34, question: q },
+  closed: { ...base, status: 'closed', answered: 34, question: q, counts },
+  reveal: { ...base, status: 'reveal', answered: 34, question: q, counts, reveal },
+  batch: { ...base, status: 'batch', batch: qs, batchCounts: [35, 33, 30, 28, 25], completed: 24 },
+  summary: { ...base, status: 'summary', summary },
+  keypoints: { ...base, status: 'keypoints', keyPoints },
+};
+const mine = { 0: 'A', 1: 'A', 2: 'A', 3: 'B' };
+const T = {
+  login: { view: 'login', prefillCode: '482913' },
+  testlogin: { view: 'login', prefillCode: '482913', testMode: true },
+  testq: { view: 'question', testMode: true, studentId: '小明', title: '測試', question: q, myChoice: 'B' },
+  question: { view: 'question', studentId: 'N1120345', title: base.title, question: q, myChoice: 'C' },
+  reveal: { view: 'reveal', studentId: 'N1120345', title: base.title, question: q, myChoice: 'C', reveal },
+  batch: { view: 'batch', studentId: 'N1120345', title: base.title, batch: qs, mine: { 0: 'A', 1: 'B' } },
+  summary: { view: 'summary', studentId: 'N1120345', title: base.title, summary, mine },
+  keypoints: { view: 'keypoints', studentId: 'N1120345', title: base.title, keyPoints },
+};
+const app = document.getElementById('app');
+if (p.get('mode') === 'screen') {
+  app.className = 'screen'; app.innerHTML = renderScreen(S[p.get('s')]);
+  const box = document.getElementById('qr');
+  if (box) { const r = qrcode(0, 'M'); r.addData(S.lobby.joinUrl); r.make(); box.innerHTML = r.createSvgTag({ cellSize: 8, margin: 0, scalable: true }); }
+} else { app.className = 'student'; app.innerHTML = renderStudent(T[p.get('s')]); }
+</script></body></html>
