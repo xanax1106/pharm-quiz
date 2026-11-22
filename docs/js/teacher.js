@@ -345,6 +345,7 @@ function renderHomework() {
   const advice = (r) => {
     if (r.rate >= 60 || !hwSubs.length) return '—';
     const w = LETTERS.filter((l) => l !== r.ans).sort((a, b) => r.counts[b] - r.counts[a])[0];
+    if (!r.counts[w]) return '多數未作答，提醒學生完成作答';
     const why = hwKey.items[r.i]?.why?.[w];
     return `重講；最多人誤選 ${w}${why ? `：${esc(why)}` : ''}`;
   };
