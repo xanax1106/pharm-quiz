@@ -476,6 +476,7 @@ function downloadJoinQr() {
   $('btn-qr').addEventListener('click', downloadJoinQr);
   $('hw-file').addEventListener('change', onHwFile);
   $('btn-hw-create').addEventListener('click', createHomework);
+  $('btn-live-home').addEventListener('click', () => { unsubs.forEach((u) => u()); unsubs = []; sid = null; show('view-setup'); listOpenSessions(); listHomework(); });
   $('btn-hw-back').addEventListener('click', () => { hwUnsubs.forEach((u) => u()); hwUnsubs = []; show('view-setup'); listHomework(); });
   $('btn-hw-export').addEventListener('click', exportHomework);
   $('btn-hw-toggle').addEventListener('click', async () => {
